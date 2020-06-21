@@ -16,7 +16,7 @@ import common.*;
  * @author Dr Robert Lagani&egrave;re
  * @version July 2000
  */
-public class ClientConsole implements ChatIF 
+public class ServerConsole implements ChatIF 
 {
   //Class variables *************************************************
   
@@ -36,20 +36,16 @@ public class ClientConsole implements ChatIF
   //Constructors ****************************************************
 
   /**
-   * Constructs an instance of the ClientConsole UI.
+   * Constructs an instance of the ServerConsole UI.
    *
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port, String loginID) 
+  public ServerConsole(String host, int port, String loginID) 
   {
     try 
     {
       client= new ChatClient(host, port, this, loginID);
-      if (client.getLoginID().equals(null) || client.getLoginID().equals("")){
-        client.quit();
-      }
-      client.handleMessageFromClientUI("#login <" + client.getLoginID() + ">");
     } 
     catch(IOException exception) 
     {
@@ -78,52 +74,7 @@ public class ClientConsole implements ChatIF
       while (true) 
       {
         message = fromConsole.readLine();
-        // Case where connection needs to be terminated
-        if(message.equals("#quit")){
-          client.quit();
-        }
-        if(message.equals("#logoff")){
-          client.closeConnection();
-        }
-        // Command to change host to new host
-        if(message.substring(0, message.indexOf(' ')).equals("#sethost")){
-          if (!client.isConnected()){
-            String host = message.substring(message.indexOf('<'), message.indexOf('>'));
-            client.setHost(host);
-          }
-          else{
-            System.out.println("Client is already connected, cannot change host");
-          }
-         
-        }
-        // Command to change port to new port
-        if (message.substring(0, message.indexOf(' ')).equals("#setport")){
-          if(!client.isConnected()){
-            int port = Integer.parseInt(message.substring(message.indexOf('<'), message.indexOf('>')));
-            client.setPort(port);
-          }
-          else{
-            System.out.println("Client is already connected cannot change port");
-          }
-        }
-        // Command to login with new port and host specified, only allowed if not already connected
-        if (message.equals("#login")){
-          if (!client.isConnected()){
-            client.openConnection();
-          }
-          else{
-            System.out.println("Cannot make new connection. Client is already connected.");
-          }
-          
-        }
-        // Command to display host name
-        if (message.equals("#getHost")){
-          System.out.println(client.getHost());
-        }
-        // Commant to display port 
-        if (message.equals("#getPort")){
-          System.out.println(client.getPort());
-        }
+        
         client.handleMessageFromClientUI(message);
       }
 
@@ -143,7 +94,7 @@ public class ClientConsole implements ChatIF
    */
   public void display(String message) 
   {
-    System.out.println("> " + message);
+    System.out.println("SERVER MSG> " + message);
   }
 
   
@@ -155,21 +106,10 @@ public class ClientConsole implements ChatIF
    */
   public static void main(String[] args) 
   {
-    String loginID = "";
     String host = "";
     int port = 0;  //The port number
-    BufferedReader fromConsole = 
-        new BufferedReader(new InputStreamReader(System.in));
+    String loginID = "SERVER";
 
-    try {
-      loginID = fromConsole.readLine();
-    }
-    catch (Exception ex) 
-    {
-      System.out.println
-        ("Unexpected error while reading from console!");
-    }
-    
     
 
     try
@@ -182,7 +122,7 @@ public class ClientConsole implements ChatIF
       port = DEFAULT_PORT;
       host = "localhost";
     }
-    ClientConsole chat= new ClientConsole(host, port, loginID);
+    ServerConsole chat= new ServerConsole(host, port, loginID);
     chat.accept();  //Wait for console data
   }
 }

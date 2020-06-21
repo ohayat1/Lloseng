@@ -45,11 +45,72 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
+  public void handleMessageFromClient (Object msg, ConnectionToClient client)
   {
+    String message = (String) msg;
+    
+
+    // Only commands from the server UI can reach the server, Commands for Client will have been taken care of by clientUI
+    // Command to quit server
+    if (message.equals("#quit")){
+      try 
+      {
+        this.close();
+      }
+      catch(Exception EX){}
+
+    }
+    // Command to stop listening to new client
+    if (message.equals("#stop")){
+      this.stopListening();
+    }
+    // Command to change port to new port
+    if (message.substring(0, message.indexOf(' ')).equals("#setport")){
+      if(!this.isListening()){
+        int port = Integer.parseInt(message.substring(message.indexOf('<'), message.indexOf('>')));
+        this.setPort(port);
+      }
+      else{
+        System.out.println("Server is still Listening cannot change port");
+      }
+    }
+    // Command to start listening again
+    if (message.equals("#start")){
+      if(!this.isListening()){
+        try {
+          this.listen();
+        }
+        catch (Exception EX){}
+      }
+      else{
+        System.out.println("Server is already started and listening for new clients.");
+      }
+    }
+    // Command to set login info
+    if (message.substring(0, message.indexOf(' ')).equals("#login")){
+      // check if loginID has not been assigned already
+      if (client.getInfo("loginID").equals(null)){
+        client.setInfo("loginID", message.substring(message.indexOf('<'), message.indexOf('>')));
+      }
+      else{
+        try{
+          client.close();
+        }
+        catch (Exception Ex){}
+        
+      }
+      
+    }
+
+    // Command to get port and display it
+    if (message.equals("#getport")){
+      System.out.println(this.getPort());
+    }
+
+
     System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    // Set the login ID before sending a msg
+    this.sendToAllClients(client.getInfo("loginID") + ": " + msg);
   }
     
   /**
@@ -59,7 +120,7 @@ public class EchoServer extends AbstractServer
   protected void serverStarted()
   {
     System.out.println
-      ("Server listening for connections on port " + getPort());
+      ("Server listening BLAH for connections on port " + getPort());
   }
   
   /**
@@ -70,6 +131,22 @@ public class EchoServer extends AbstractServer
   {
     System.out.println
       ("Server has stopped listening for connections.");
+  }
+
+  /**
+   * This method overrides the one in the superclass.  Called
+   * when tclient connects.
+   */
+  protected void clientConnected(ConnectionToClient client) {
+    System.out.println("WELCOME! NEW CLIENT HAS CONNECTED.");
+  }
+
+  /**
+   * This method overrides the one in the superclass.  Called
+   * when client disconnects.
+   */
+  synchronized protected void clientDisconnected( ConnectionToClient client) {
+    System.out.println("AU REVOIR! A CLIENT HAS DISCONNECTED.");
   }
   
   //Class methods ***************************************************
